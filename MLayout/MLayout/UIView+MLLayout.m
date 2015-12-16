@@ -67,6 +67,27 @@
 @end
 @implementation UIView (MLLayout)
 
+
+///  填充子视图
+///
+///  - parameter referView: 参考视图
+///  - parameter insets:    间距
+- (NSArray *)ml_FillReferView:(UIView *)referView insets:(UIEdgeInsets)insets {
+    
+    self.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    NSMutableArray *cons = [[NSMutableArray alloc]init];
+    
+   [cons addObject:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-\(insets.left)-[subView]-\(insets.right)-|" options:NSLayoutFormatAlignAllBaseline metrics:nil views:@{@"subView" : self}]];
+    
+   [cons addObject:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-\(insets.top)-[subView]-\(insets.bottom)-|" options:NSLayoutFormatAlignAllBaseline metrics:nil views:@{@"subView" : self}]];
+    
+    [self.superview addConstraints:cons.copy];
+    
+    return cons.copy;
+}
+
+
 ///  参照参考视图内部对齐
 ///
 ///  - parameter type:      对齐方式
@@ -118,26 +139,59 @@
     
     NSAssert(!views || views.count == 0, @"views should not be empty");
     
-    var cons = [NSLayoutConstraint]()
+    NSMutableArray *cons = [[NSMutableArray alloc]init];
     
-    let firstView = views[0]
-    firstView.ml_AlignInner(type: ml_AlignType.TopLeft, referView: self, size: nil, offset: CGPoint(x: insets.left, y: insets.top))
-    cons.append(NSLayoutConstraint(item: firstView, attribute: NSLayoutAttribute.Bottom, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.Bottom, multiplier: 1.0, constant: -insets.bottom))
+    UIView *firstView = views[0];
+    
+    [firstView ml_AlignInnerType:AlignTypeTopLeft referView:self size:nil offset:point(insets.left, insets.top)];
+    
+   [cons addObject:[NSLayoutConstraint constraintWithItem:firstView attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeBottom multiplier:1.0 constant:-insets.bottom]];
     
     // 添加后续视图的约束
-    var preView = firstView
-    for i in 1..<views.count {
-        let subView = views[i]
-        cons += subView.ml_sizeConstraints(firstView)
-        subView.ml_AlignHorizontal(type: ml_AlignType.TopRight, referView: preView, size: nil, offset: CGPoint(x: insets.right, y: 0))
-        preView = subView
+    UIView *preView = firstView;
+    for (int i = 1; i < views.count; i++) {
+        UIView *subView = views[i];
+        [cons addObjectsFromArray:[subView ml_sizeConstraintsReferView:firstView]];
+        [subView ml_AlignHorizontalType:AlignTypeTopRight referView:preView size:nil offset:point(insets.right, 0)];
+        preView = subView;
     }
+    UIView *lastView = views.lastObject;
+    [cons addObject:[NSLayoutConstraint constraintWithItem:lastView attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeRight multiplier:1.0 constant:-insets.right]];
+    [self addConstraints:cons.copy];
     
-    let lastView = views.last!
-    cons.append(NSLayoutConstraint(item: lastView, attribute: NSLayoutAttribute.Right, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.Right, multiplier: 1.0, constant: -insets.right))
+    return cons.copy;
+}
+
+///  在当前视图内部垂直平铺控件
+///
+///  - parameter views:  子视图数组
+///  - parameter insets: 间距
+///
+///  - returns: 约束数组
+- (NSArray *)ml_VerticalTileViews:(NSArray *)views insets:(UIEdgeInsets)insets {
     
-    addConstraints(cons)
-    return cons
+    NSAssert(!views || views.count == 0, @"views should not be empty");
+    
+    NSMutableArray *cons = [[NSMutableArray alloc]init];
+    
+    UIView *firstView = views[0];
+    [firstView ml_AlignInnerType:AlignTypeTopLeft referView:self size:nil offset:point(insets.left, insets.top)];
+    [cons addObject:[NSLayoutConstraint constraintWithItem:firstView attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeRight multiplier:1.0 constant:-insets.right]];
+    
+    // 添加后续视图的约束
+    UIView *preView = firstView;
+    for (int i = 1; i < views.count; i++) {
+        UIView *subView = views[i];
+        [cons addObjectsFromArray:[subView ml_sizeConstraintsReferView:firstView]];
+        [subView ml_AlignVerticalType:AlignTypeBottomLeft referView:preView size:nil offset:point(0, insets.bottom)];
+        preView = subView;
+    }
+
+    UIView *lastView = views.lastObject;
+    [cons addObject:[NSLayoutConstraint constraintWithItem:lastView attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeBottom multiplier:1.0 constant:-insets.bottom]];
+    [self addConstraints:cons.copy];
+    
+    return cons.copy;
 }
 
 
@@ -179,6 +233,21 @@
     
     return @[width,height];
 }
+
+///  尺寸约束数组
+///
+///  - parameter referView: 参考视图，与参考视图大小一致
+///
+///  - returns: 约束数组
+- (NSArray *)ml_sizeConstraintsReferView:(UIView *)referView {
+    
+    NSLayoutConstraint *width = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:referView attribute:NSLayoutAttributeWidth multiplier:1.0 constant:0];
+    
+    NSLayoutConstraint *height = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:referView attribute:NSLayoutAttributeHeight multiplier:1.0 constant:0];
+    
+    return @[width,height];
+}
+
 
 
 ///  位置约束数组

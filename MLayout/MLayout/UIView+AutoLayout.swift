@@ -178,7 +178,7 @@ extension UIView {
         let lastView = views.last!
         cons.append(NSLayoutConstraint(item: lastView, attribute: NSLayoutAttribute.Right, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.Right, multiplier: 1.0, constant: -insets.right))
         
-        addConstraints(cons)
+       addConstraints(cons)
         return cons
     }
     
