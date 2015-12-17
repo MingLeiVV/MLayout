@@ -7,12 +7,12 @@
 //
 
 #import "UIView+MLLayout.h"
-
+///  布局属性
 @interface LayoutAttributes : NSObject
-@property(nonatomic, assign)NSLayoutAttribute horizontal;
-@property(nonatomic, assign)NSLayoutAttribute referHorizontal;
-@property(nonatomic, assign)NSLayoutAttribute vertical;
-@property(nonatomic, assign)NSLayoutAttribute referVertical;
+@property (nonatomic, assign) NSLayoutAttribute horizontal;
+@property (nonatomic, assign) NSLayoutAttribute referHorizontal;
+@property (nonatomic, assign) NSLayoutAttribute vertical;
+@property (nonatomic, assign) NSLayoutAttribute referVertical;
 
 - (instancetype)initWithHorizontal:(NSLayoutAttribute)horizontal referHorizontal:(NSLayoutAttribute)referHorizontal vertical:(NSLayoutAttribute)vertical referVertical:(NSLayoutAttribute)referVertical;
 @end
@@ -22,10 +22,10 @@
     self = [super init];
     if (self) {
         
-        _horizontal = NSLayoutAttributeLeft;
+        _horizontal      = NSLayoutAttributeLeft;
         _referHorizontal = NSLayoutAttributeLeft;
-        _vertical = NSLayoutAttributeTop;
-        _referVertical = NSLayoutAttributeTop;
+        _vertical        = NSLayoutAttributeTop;
+        _referVertical   = NSLayoutAttributeTop;
     }
     
     return self;
@@ -33,24 +33,24 @@
 - (instancetype)initWithHorizontal:(NSLayoutAttribute)horizontal referHorizontal:(NSLayoutAttribute)referHorizontal vertical:(NSLayoutAttribute)vertical referVertical:(NSLayoutAttribute)referVertical {
     self = [super init];
     if (self) {
-        _horizontal = horizontal;
+        _horizontal      = horizontal;
         _referHorizontal = referHorizontal;
-        _vertical = vertical;
-        _referVertical = referVertical;
+        _vertical        = vertical;
+        _referVertical   = referVertical;
     }
     return self;
 }
 
 - (instancetype)horizontalsFrom:(NSLayoutAttribute)from to:(NSLayoutAttribute)to {
-    
-    _horizontal = from;
+
+    _horizontal      = from;
     _referHorizontal = to;
     return self;
 }
 - (instancetype)verticalsFrom:(NSLayoutAttribute)from to:(NSLayoutAttribute)to {
-    
-    _vertical = from;
-    _referVertical = to;
+
+    _vertical        = from;
+    _referVertical   = to;
     return self;
 }
 
@@ -58,12 +58,15 @@
 @end
 
 @interface UIView (MLLayout)
-@property(nonatomic, assign)NSLayoutAttribute Top;
-@property(nonatomic, assign)NSLayoutAttribute Right;
-@property(nonatomic, assign)NSLayoutAttribute Left;
-@property(nonatomic, assign)NSLayoutAttribute Bottom;
-@property(nonatomic, assign)NSLayoutAttribute CenterX;
-@property(nonatomic, assign)NSLayoutAttribute CenterY;
+@property (nonatomic, assign) NSLayoutAttribute Top;
+@property (nonatomic, assign) NSLayoutAttribute Right;
+@property (nonatomic, assign) NSLayoutAttribute Left;
+@property (nonatomic, assign) NSLayoutAttribute Bottom;
+@property (nonatomic, assign) NSLayoutAttribute CenterX;
+@property (nonatomic, assign) NSLayoutAttribute CenterY;
+@property (nonatomic, assign) NSLayoutAttribute Width;
+@property (nonatomic, assign) NSLayoutAttribute Height;
+@property (nonatomic, assign) NSLayoutAttribute NotAn;
 @end
 @implementation UIView (MLLayout)
 
@@ -72,15 +75,15 @@
 ///
 ///  - parameter referView: 参考视图
 ///  - parameter insets:    间距
-- (NSArray *)ml_FillReferView:(UIView *)referView insets:(UIEdgeInsets)insets {
+- (NSArray *)ml_FillInsets:(UIEdgeInsets)insets {
     
     self.translatesAutoresizingMaskIntoConstraints = NO;
     
     NSMutableArray *cons = [[NSMutableArray alloc]init];
     
-   [cons addObject:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-\(insets.left)-[subView]-\(insets.right)-|" options:NSLayoutFormatAlignAllBaseline metrics:nil views:@{@"subView" : self}]];
+    [cons addObjectsFromArray: [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-(left)-[subView]-(right)-|" options:NSLayoutFormatAlignAllBaseline metrics:@{@"left":@(insets.left),@"right":@(insets.right)} views:@{@"subView" : self}]];
     
-   [cons addObject:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-\(insets.top)-[subView]-\(insets.bottom)-|" options:NSLayoutFormatAlignAllBaseline metrics:nil views:@{@"subView" : self}]];
+    [cons addObjectsFromArray:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-(top)-[subView]-(bottom)-|" options:NSLayoutFormatAlignAllBaseline metrics:@{@"top":@(insets.top),@"bottom":@(insets.bottom)} views:@{@"subView" : self}]];
     
     [self.superview addConstraints:cons.copy];
     
@@ -137,26 +140,26 @@
 ///  - returns: 约束数组
 - (NSArray *)ml_HorizontalTileViews:(NSArray *)views insets:(UIEdgeInsets)insets {
     
-    NSAssert(!views || views.count == 0, @"views should not be empty");
+    NSAssert(views || views.count != 0, @"views should not be empty");
     
     NSMutableArray *cons = [[NSMutableArray alloc]init];
     
     UIView *firstView = views[0];
     
-    [firstView ml_AlignInnerType:AlignTypeTopLeft referView:self size:nil offset:point(insets.left, insets.top)];
+    [firstView ml_AlignInnerType:AlignTypeTopLeft referView:self size:nil offset:ofset(insets.left, insets.top)];
     
-   [cons addObject:[NSLayoutConstraint constraintWithItem:firstView attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeBottom multiplier:1.0 constant:-insets.bottom]];
+   [cons addObject:[NSLayoutConstraint constraintWithItem:firstView attribute:self.Bottom relatedBy:NSLayoutRelationEqual toItem:self attribute:self.Bottom multiplier:1.0 constant:-insets.bottom]];
     
     // 添加后续视图的约束
     UIView *preView = firstView;
     for (int i = 1; i < views.count; i++) {
         UIView *subView = views[i];
         [cons addObjectsFromArray:[subView ml_sizeConstraintsReferView:firstView]];
-        [subView ml_AlignHorizontalType:AlignTypeTopRight referView:preView size:nil offset:point(insets.right, 0)];
+        [subView ml_AlignHorizontalType:AlignTypeTopRight referView:preView size:nil offset:ofset(insets.right, 0)];
         preView = subView;
     }
     UIView *lastView = views.lastObject;
-    [cons addObject:[NSLayoutConstraint constraintWithItem:lastView attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeRight multiplier:1.0 constant:-insets.right]];
+    [cons addObject:[NSLayoutConstraint constraintWithItem:lastView attribute:self.Right relatedBy:NSLayoutRelationEqual toItem:self attribute:self.Right multiplier:1.0 constant:-insets.right]];
     [self addConstraints:cons.copy];
     
     return cons.copy;
@@ -170,30 +173,99 @@
 ///  - returns: 约束数组
 - (NSArray *)ml_VerticalTileViews:(NSArray *)views insets:(UIEdgeInsets)insets {
     
-    NSAssert(!views || views.count == 0, @"views should not be empty");
+    NSAssert(views || views.count != 0, @"views should not be empty");
     
     NSMutableArray *cons = [[NSMutableArray alloc]init];
     
     UIView *firstView = views[0];
-    [firstView ml_AlignInnerType:AlignTypeTopLeft referView:self size:nil offset:point(insets.left, insets.top)];
-    [cons addObject:[NSLayoutConstraint constraintWithItem:firstView attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeRight multiplier:1.0 constant:-insets.right]];
+    [firstView ml_AlignInnerType:AlignTypeTopLeft referView:self size:nil offset:ofset(insets.left, insets.top)];
+    [cons addObject:[NSLayoutConstraint constraintWithItem:firstView attribute:self.Right relatedBy:NSLayoutRelationEqual toItem:self attribute:self.Right multiplier:1.0 constant:-insets.right]];
     
     // 添加后续视图的约束
     UIView *preView = firstView;
     for (int i = 1; i < views.count; i++) {
         UIView *subView = views[i];
         [cons addObjectsFromArray:[subView ml_sizeConstraintsReferView:firstView]];
-        [subView ml_AlignVerticalType:AlignTypeBottomLeft referView:preView size:nil offset:point(0, insets.bottom)];
+        [subView ml_AlignVerticalType:AlignTypeBottomLeft referView:preView size:nil offset:ofset(0, insets.bottom)];
         preView = subView;
     }
 
     UIView *lastView = views.lastObject;
-    [cons addObject:[NSLayoutConstraint constraintWithItem:lastView attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeBottom multiplier:1.0 constant:-insets.bottom]];
+    [cons addObject:[NSLayoutConstraint constraintWithItem:lastView attribute:self.Bottom relatedBy:NSLayoutRelationEqual toItem:self attribute:self.Bottom multiplier:1.0 constant:-insets.bottom]];
     [self addConstraints:cons.copy];
     
     return cons.copy;
 }
 
+///  参照某个视图等高等宽
+///
+///  - parameter views:           视图数组
+///  - parameter referView:       参照视图
+///
+///  - returns: 约束数组
+- (NSArray *)ml_RelationEqualViews:(NSArray *)views {
+    NSAssert(views || views.count != 0, @"views should not be empty");
+    
+    NSMutableArray *cons = [[NSMutableArray alloc]init];
+    
+    for (int i = 0; i < views.count; i++) {
+        UIView *view = views[i];
+        for (int i = 0; i < views.count; i++) {
+            UIView *preView = views[i];
+            if (view == preView) {
+                continue;
+            }
+           NSArray *conList = [view ml_sizeConstraintsReferView:preView];
+            [view.superview addConstraints:conList];
+            [cons addObjectsFromArray:conList];
+        }
+    }
+    return cons.copy;
+}
+///  水平中线、垂直中线
+///
+///  - parameter views:           视图数组
+///  - parameter centerX:         水平中线
+///  - parameter centerY:         垂直中线
+///
+///  - returns: 约束数组
+- (NSArray *)ml_AlignCenterLineViews:(NSArray *)views centerX:(BOOL)centerX centerY:(BOOL)centerY {
+    NSAssert(views || views.count != 0, @"views should not be empty");
+//    NSAssert(centerX && centerY, @"The median line can only be set one, horizontal or vertical line");
+    NSMutableArray *cons = [[NSMutableArray alloc]init];
+    
+    NSLayoutAttribute attribute = centerX ? self.CenterX : self.CenterY;
+    for (int i = 0; i < views.count; i++) {
+        UIView *view = views[i];
+        for (int i = 0; i < views.count; i++) {
+            UIView *preView = views[i];
+            if (view == preView) {
+                continue;
+            }
+           NSLayoutConstraint *constraint =  [NSLayoutConstraint constraintWithItem:view attribute:attribute relatedBy:0 toItem:preView attribute:attribute multiplier:1.0 constant:0];
+            [view.superview addConstraint:constraint];
+            [cons addObject:constraint];
+        }
+    }
+    return cons.copy;
+
+}
+
+///  从约束数组中查找指定 attribute 的约束
+///
+///  - parameter constraintsList: 约束数组
+///  - parameter attribute:       约束属性
+///
+///  - returns: attribute 对应的约束
+- (NSLayoutConstraint *)ml_ConstraintFromSet:(NSArray *)constraintsList attribute:(NSLayoutAttribute)attribute {
+    
+    for (NSLayoutConstraint *conatraint in constraintsList) {
+        if ((NSObject *)conatraint.firstItem == self && conatraint.firstAttribute == attribute) {
+            return conatraint;
+        }
+    }
+    return nil;
+}
 
 
 // MARK: - 私有函数
@@ -265,11 +337,39 @@
     return @[horizontal,vertical];
 }
 
-///  布局属性
+
 - (LayoutAttributes *)layoutAttributesType:(AlignType)type isInner:(BOOL)isInner isVertical:(BOOL)isVertical {
    
     LayoutAttributes *attributes = [[LayoutAttributes alloc]init];
     switch (type) {
+        case AlignTypeTop:
+            [attributes verticalsFrom:self.Top to:self.Top];
+            if (isInner) {
+                return attributes;
+            }else {
+                return [attributes verticalsFrom:self.Bottom to:self.Top];
+            }
+        case AlignTypeLeft:
+            [attributes horizontalsFrom:self.Left to:self.Left];
+            if (isInner) {
+                return attributes;
+            } else {
+                return [attributes horizontalsFrom:self.Right to:self.Left];
+            }
+        case AlignTypeRight:
+            [attributes horizontalsFrom:self.Right to:self.Right];
+            if (isInner) {
+                return attributes;
+            } else {
+                return [attributes horizontalsFrom:self.Left to:self.Right];
+            }
+        case AlignTypeBottom:
+             [attributes verticalsFrom:self.Bottom to:self.Bottom];
+            if (isInner) {
+                return attributes;
+            } else {
+                return [attributes horizontalsFrom:self.Right to:self.Left];
+            }
         case AlignTypeTopLeft:
             [[attributes horizontalsFrom:self.Left to:self.Left] verticalsFrom:self.Top to:self.Top];
             if (isInner) {
@@ -345,6 +445,15 @@
 }
 - (NSLayoutAttribute)CenterY {
     return NSLayoutAttributeCenterY;
+}
+- (NSLayoutAttribute)Width {
+    return NSLayoutAttributeWidth;
+}
+- (NSLayoutAttribute)Height {
+    return NSLayoutAttributeHeight;
+}
+- (NSLayoutAttribute)NotAn {
+   return NSLayoutAttributeNotAnAttribute;
 }
 @end
 
