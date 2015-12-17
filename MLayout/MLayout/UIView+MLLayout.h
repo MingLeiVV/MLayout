@@ -13,8 +13,8 @@
 typedef NS_OPTIONS(NSUInteger, AlignType) {
     AlignTypeTop          = 0,
     AlignTypeLeft         = 1 << 0,
-    AlignTypeRight        = 1 << 1,
-    AlignTypeBottom       = 1 << 2,
+//    AlignTypeRight        = 1 << 1,
+//    AlignTypeBottom       = 1 << 2,
     AlignTypeTopLeft      = 1 << 3,
     AlignTypeTopRight     = 1 << 4,
     AlignTypeTopCenter    = 1 << 5,

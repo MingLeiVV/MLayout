@@ -29,12 +29,14 @@
 //    view.translatesAutoresizingMaskIntoConstraints = NO;
     view.backgroundColor = [UIColor greenColor];
     [self.view addSubview:view];
-   NSArray *con1 = [view ml_AlignHorizontalType:AlignTypeTopRight referView:view1 size:size(50, 50) offset:nil];
+//   NSArray *con1 = [view ml_AlignHorizontalType:AlignTypeTopRight referView:view1 size:size(50, 50) offset:nil];
+     [self.view ml_AlignCenterLineViews:@[view,view1] centerX:NO centerY:YES];
+    [view ml_AlignHorizontalType:AlignTypeLeft referView:view1 size:size(50, 50) offset:ofset(10, 0)];
     
 //   NSLayoutConstraint *cons = [view ml_ConstraintFromSet:con1 attribute:NSLayoutAttributeWidth];
     
 //    [self.view ml_RelationEqualViews:@[view,view1]];
-    [self.view ml_AlignCenterLineViews:@[view,view1] centerX:NO centerY:YES];
+   
     
 //   NSArray *con1 = [view ml_AlignHorizontalType:AlignTypeBottomRight referView:view1 size:size(20, 20) offset:point(-30, -30)];
 //    [view ml_FillInsets:UIEdgeInsetsMake(20, 20, 20, 20)];

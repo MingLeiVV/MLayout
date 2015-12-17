@@ -215,11 +215,10 @@
             if (view == preView) {
                 continue;
             }
-           NSArray *conList = [view ml_sizeConstraintsReferView:preView];
-            [view.superview addConstraints:conList];
-            [cons addObjectsFromArray:conList];
+            [cons addObjectsFromArray: [view ml_sizeConstraintsReferView:preView]];
         }
     }
+    [self addConstraints:cons.copy];
     return cons.copy;
 }
 ///  水平中线、垂直中线
@@ -243,10 +242,10 @@
                 continue;
             }
            NSLayoutConstraint *constraint =  [NSLayoutConstraint constraintWithItem:view attribute:attribute relatedBy:0 toItem:preView attribute:attribute multiplier:1.0 constant:0];
-            [view.superview addConstraint:constraint];
             [cons addObject:constraint];
         }
     }
+    [self addConstraints:cons.copy];
     return cons.copy;
 
 }
@@ -343,32 +342,18 @@
     LayoutAttributes *attributes = [[LayoutAttributes alloc]init];
     switch (type) {
         case AlignTypeTop:
-            [attributes verticalsFrom:self.Top to:self.Top];
+            [[attributes verticalsFrom:self.Top to:self.Top] horizontalsFrom:0 to:0 ];
             if (isInner) {
                 return attributes;
             }else {
-                return [attributes verticalsFrom:self.Bottom to:self.Top];
+                return [attributes verticalsFrom:self.Top to:self.Bottom];
             }
         case AlignTypeLeft:
-            [attributes horizontalsFrom:self.Left to:self.Left];
-            if (isInner) {
-                return attributes;
-            } else {
-                return [attributes horizontalsFrom:self.Right to:self.Left];
-            }
-        case AlignTypeRight:
-            [attributes horizontalsFrom:self.Right to:self.Right];
+            [[attributes horizontalsFrom:self.Left to:self.Left] verticalsFrom:0 to:0    ];
             if (isInner) {
                 return attributes;
             } else {
                 return [attributes horizontalsFrom:self.Left to:self.Right];
-            }
-        case AlignTypeBottom:
-             [attributes verticalsFrom:self.Bottom to:self.Bottom];
-            if (isInner) {
-                return attributes;
-            } else {
-                return [attributes horizontalsFrom:self.Right to:self.Left];
             }
         case AlignTypeTopLeft:
             [[attributes horizontalsFrom:self.Left to:self.Left] verticalsFrom:self.Top to:self.Top];
