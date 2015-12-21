@@ -13,8 +13,6 @@
 @property (nonatomic, assign) NSLayoutAttribute referHorizontal;
 @property (nonatomic, assign) NSLayoutAttribute vertical;
 @property (nonatomic, assign) NSLayoutAttribute referVertical;
-
-- (instancetype)initWithHorizontal:(NSLayoutAttribute)horizontal referHorizontal:(NSLayoutAttribute)referHorizontal vertical:(NSLayoutAttribute)vertical referVertical:(NSLayoutAttribute)referVertical;
 @end
 
 @implementation LayoutAttributes
@@ -22,10 +20,10 @@
     self = [super init];
     if (self) {
         
-        _horizontal      = NSLayoutAttributeLeft;
-        _referHorizontal = NSLayoutAttributeLeft;
-        _vertical        = NSLayoutAttributeTop;
-        _referVertical   = NSLayoutAttributeTop;
+        _horizontal      = NSLayoutAttributeNotAnAttribute;
+        _referHorizontal = NSLayoutAttributeNotAnAttribute;
+        _vertical        = NSLayoutAttributeNotAnAttribute;
+        _referVertical   = NSLayoutAttributeNotAnAttribute;
     }
     
     return self;
@@ -299,8 +297,8 @@
 ///  - returns: 约束数组
 - (NSArray *)ml_sizeConstraintsSize:(CGSize)size {
     
-    NSLayoutConstraint *width = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:size.width];
-    NSLayoutConstraint *height = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:size.height];
+    NSLayoutConstraint *width = [NSLayoutConstraint constraintWithItem:self attribute:self.Width relatedBy:NSLayoutRelationEqual toItem:nil attribute:self.NotAn multiplier:1.0 constant:size.width];
+    NSLayoutConstraint *height = [NSLayoutConstraint constraintWithItem:self attribute:self.Height relatedBy:NSLayoutRelationEqual toItem:nil attribute:self.NotAn multiplier:1.0 constant:size.height];
     
     return @[width,height];
 }
@@ -312,9 +310,9 @@
 ///  - returns: 约束数组
 - (NSArray *)ml_sizeConstraintsReferView:(UIView *)referView {
     
-    NSLayoutConstraint *width = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:referView attribute:NSLayoutAttributeWidth multiplier:1.0 constant:0];
+    NSLayoutConstraint *width = [NSLayoutConstraint constraintWithItem:self attribute:self.Width relatedBy:NSLayoutRelationEqual toItem:referView attribute:self.Width multiplier:1.0 constant:0];
     
-    NSLayoutConstraint *height = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:referView attribute:NSLayoutAttributeHeight multiplier:1.0 constant:0];
+    NSLayoutConstraint *height = [NSLayoutConstraint constraintWithItem:self attribute:self.Height relatedBy:NSLayoutRelationEqual toItem:referView attribute:self.Height multiplier:1.0 constant:0];
     
     return @[width,height];
 }
@@ -330,30 +328,51 @@
 ///  - returns: 约束数组
 - (NSArray *)ml_positionConstraintsReferView:(UIView *)referView attributes:(LayoutAttributes *)attributes offset:(CGPoint)offset {
     
-    NSLayoutConstraint *horizontal = [NSLayoutConstraint constraintWithItem:self attribute:attributes.horizontal relatedBy:NSLayoutRelationEqual toItem:referView attribute:attributes.referHorizontal multiplier:1.0 constant:offset.x];
-    NSLayoutConstraint *vertical = [NSLayoutConstraint constraintWithItem:self attribute:attributes.vertical relatedBy:NSLayoutRelationEqual toItem:referView attribute:attributes.referVertical multiplier:1.0 constant:offset.y];
+    NSLayoutConstraint *horizontal = [[NSLayoutConstraint alloc]init];
+    NSLayoutConstraint *vertical = [[NSLayoutConstraint alloc]init];
+    if (attributes.horizontal) {
+        horizontal = [NSLayoutConstraint constraintWithItem:self attribute:attributes.horizontal relatedBy:NSLayoutRelationEqual toItem:referView attribute:attributes.referHorizontal multiplier:1.0 constant:offset.x];
+    }
+    if (attributes.vertical) {
+        vertical = [NSLayoutConstraint constraintWithItem:self attribute:attributes.vertical relatedBy:NSLayoutRelationEqual toItem:referView attribute:attributes.referVertical multiplier:1.0 constant:offset.y];
+        
+    }
     
     return @[horizontal,vertical];
 }
 
-
+/// 获取布局属性
 - (LayoutAttributes *)layoutAttributesType:(AlignType)type isInner:(BOOL)isInner isVertical:(BOOL)isVertical {
    
     LayoutAttributes *attributes = [[LayoutAttributes alloc]init];
     switch (type) {
         case AlignTypeTop:
-            [[attributes verticalsFrom:self.Top to:self.Top] horizontalsFrom:0 to:0 ];
+            [attributes verticalsFrom:self.Top to:self.Top];
             if (isInner) {
                 return attributes;
             }else {
-                return [attributes verticalsFrom:self.Top to:self.Bottom];
+                return [attributes verticalsFrom:self.Bottom to:self.Top];
             }
         case AlignTypeLeft:
-            [[attributes horizontalsFrom:self.Left to:self.Left] verticalsFrom:0 to:0    ];
+            [attributes horizontalsFrom:self.Left to:self.Left];
+            if (isInner) {
+                return attributes;
+            } else {
+                return [attributes horizontalsFrom:self.Right to:self.Left];
+            }
+        case AlignTypeRight:
+            [attributes horizontalsFrom:self.Right to:self.Right];
             if (isInner) {
                 return attributes;
             } else {
                 return [attributes horizontalsFrom:self.Left to:self.Right];
+            }
+        case AlignTypeBottom:
+            [attributes horizontalsFrom:self.Bottom to:self.Bottom];
+            if (isInner) {
+                return attributes;
+            } else {
+                return [attributes horizontalsFrom:self.Top to:self.Bottom];
             }
         case AlignTypeTopLeft:
             [[attributes horizontalsFrom:self.Left to:self.Left] verticalsFrom:self.Top to:self.Top];

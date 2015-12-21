@@ -13,8 +13,8 @@
 typedef NS_OPTIONS(NSUInteger, AlignType) {
     AlignTypeTop          = 0,
     AlignTypeLeft         = 1 << 0,
-//    AlignTypeRight        = 1 << 1,
-//    AlignTypeBottom       = 1 << 2,
+    AlignTypeRight        = 1 << 1,
+    AlignTypeBottom       = 1 << 2,
     AlignTypeTopLeft      = 1 << 3,
     AlignTypeTopRight     = 1 << 4,
     AlignTypeTopCenter    = 1 << 5,
@@ -40,6 +40,7 @@ typedef NS_OPTIONS(NSUInteger, AlignType) {
 - (NSArray *)ml_VerticalTileViews:(NSArray *)views insets:(UIEdgeInsets)insets;
 ///  参照某个视图等高等宽
 - (NSArray *)ml_RelationEqualViews:(NSArray *)views;
+///  水平中线、垂直中线
 - (NSArray *)ml_AlignCenterLineViews:(NSArray *)views centerX:(BOOL)centerX centerY:(BOOL)centerY;
 ///  从约束数组中查找指定 attribute 的约束
 - (NSLayoutConstraint *)ml_ConstraintFromSet:(NSArray *)constraintsList attribute:(NSLayoutAttribute)attribute;
